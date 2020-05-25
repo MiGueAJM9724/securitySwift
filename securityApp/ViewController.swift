@@ -10,7 +10,7 @@ import UIKit
 import SQLite3
 
 class ViewController: UIViewController {
-
+    @IBOutlet weak var lb_welcome: UILabel!
     var db: OpaquePointer?
     var stmt: OpaquePointer?
     
@@ -30,21 +30,28 @@ class ViewController: UIViewController {
         let query = "SELECT email, username, birthdate, sex FROM users"
         if sqlite3_prepare(db, query, -1, &stmt, nil) != SQLITE_OK{
             let errordb = sqlite3_errmsg(db)
-            show_alert(Title: "Error", Message: "\(errordb)")
+            show_alert(Title: "Error", Message: "\(String(describing: errordb))")
             return
         }
         if sqlite3_step(stmt) == SQLITE_ROW{
             let username = String(cString: sqlite3_column_text(stmt, 1))
-            show_alert(Title: "Welcome", Message: "\(username)")
+            lb_welcome.text = "Welcome \(username)"
             return
         }else{
             self.performSegue(withIdentifier: "segue_register", sender: self)
         }
     }
     
+    @IBAction func btn_map(_ sender: UIButton) {
+        self.performSegue(withIdentifier: "segue_map", sender: self)
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "segue_register"{
             _ = segue.destination as! ViewControllerRegister
+        }
+        if segue.identifier == "segue_map"{
+            _ = segue.destination as! ViewControllerMap
         }
     }
 

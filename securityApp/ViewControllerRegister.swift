@@ -44,40 +44,43 @@ class ViewControllerRegister: UIViewController {
             let username = txt_username.text
             let birthdate = txt_birthdate.text
             let sex = txt_sex.text
+            let ema = txt_email.text?.trimmingCharacters(in: .whitespacesAndNewlines) as! NSString
+            let usr = txt_username.text?.trimmingCharacters(in: .whitespacesAndNewlines) as! NSString
+            let bir = txt_birthdate.text?.trimmingCharacters(in: .whitespacesAndNewlines) as! NSString
+            let s = txt_sex.text?.trimmingCharacters(in: .whitespacesAndNewlines) as! NSString
             
             let query = "INSERT INTO users(email, username, birthdate, sex) VALUES(?,?,?,?)"
             if sqlite3_prepare(db, query, -1, &stmt, nil) != SQLITE_OK{
                 show_alert(Title: "Error", Message: "Can't link query")
                 return
             }
-            if sqlite3_bind_text(stmt, 1, email, -1, nil) != SQLITE_OK{
+            if sqlite3_bind_text(stmt, 1, ema.utf8String, -1, nil) != SQLITE_OK{
                 show_alert(Title: "Error", Message: "Problem in email")
                 return
             }
-            if sqlite3_bind_text(stmt, 2, username, -1, nil) != SQLITE_OK{
+            if sqlite3_bind_text(stmt, 2, usr.utf8String, -1, nil) != SQLITE_OK{
                 show_alert(Title: "Error", Message: "Problem in username")
                 return
             }
-            if sqlite3_bind_text(stmt, 3, birthdate, -1, nil) != SQLITE_OK{
+            if sqlite3_bind_text(stmt, 3, bir.utf8String, -1, nil) != SQLITE_OK{
                 show_alert(Title: "Error", Message: "Problem in birthdate")
                 return
             }
-            if sqlite3_bind_text(stmt, 4, sex, -1, nil) != SQLITE_OK{
+            if sqlite3_bind_text(stmt, 4, s.utf8String, -1, nil) != SQLITE_OK{
                 show_alert(Title: "Error", Message: "Problem in sex")
                 return
             }
-            let data_to_send = ["email": email!, "username": username!, "birthdate": birthdate!, "sex": sex!] as NSMutableDictionary
-            dataJsonUrlclass.arrayFromJson(url: "WebService/insert.php", data_send: data_to_send){
-                (array_response) in DispatchQueue.main.async {
-                    let data_dictionary = array_response?.object(at: 0) as! NSDictionary
-                    if let msg = data_dictionary.object(forKey: "message") as! String?{
-                        if sqlite3_step(self.stmt) != SQLITE_OK{
-                            self.performSegue(withIdentifier: "segue_primary", sender: self)
+            if sqlite3_step(stmt) != SQLITE_OK{
+                let data_to_send = ["email": email!, "username": username!, "birthdate": birthdate!, "sex": sex!] as NSMutableDictionary
+                dataJsonUrlclass.arrayFromJson(url: "WebService/insert.php", data_send: data_to_send){
+                    (array_response) in DispatchQueue.main.async {
+                        let data_dictionary = array_response?.object(at: 0) as! NSDictionary
+                        if let msg = data_dictionary.object(forKey: "message") as! String?{
+                            print("Successful \(msg)")
                         }
-                        
-                       // self.show_alert(Title: "Successful registration", Message: msg)
                     }
                 }
+                self.performSegue(withIdentifier: "segue_primary", sender: self)
             }
         }
     }
