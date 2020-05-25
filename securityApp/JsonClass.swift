@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 class JsonClass: NSObject{
-    let urlBase = "http://192.168.8.107/"
+    let urlBase = "http://192.168.8.103/"
     
     func arrayFromJson(url: String, data_send: NSMutableDictionary, comletionHandler: @escaping (NSArray?) -> Void){
         let url = URL(string: "\(urlBase)/\(url)")!
