@@ -13,7 +13,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var lb_welcome: UILabel!
     var db: OpaquePointer?
     var stmt: OpaquePointer?
-    
+    let dataJsonUrlClass = JsonClass()
+    var mail: String = ""
+    var Reportes = [Reporte]()
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -34,6 +36,7 @@ class ViewController: UIViewController {
             return
         }
         if sqlite3_step(stmt) == SQLITE_ROW{
+            mail = String(cString: sqlite3_column_text(stmt, 0))
             let username = String(cString: sqlite3_column_text(stmt, 1))
             lb_welcome.text = "Welcome \(username)"
             return
@@ -46,12 +49,49 @@ class ViewController: UIViewController {
         self.performSegue(withIdentifier: "segue_map", sender: self)
     }
     
+    @IBAction func btn_report(_ sender: UIButton) {
+        self.performSegue(withIdentifier: "segue_report", sender: self)
+    }
+    
+    @IBAction func btn_list(_ sender: UIButton) {
+        Reportes.removeAll()
+        
+        let data_to_send = ["email": mail] as NSMutableDictionary
+        dataJsonUrlClass.arrayFromJson(url: "webservice/getreports.php", data_send: data_to_send){
+            (array_request) in
+            DispatchQueue.main.async {
+                let cuenta = array_request?.count
+
+                for indice in stride(from: 0, to: cuenta!, by: 1){
+                    let report = array_request?.object(at: indice) as! NSDictionary
+                    let location = report.object(forKey: "location") as! String?
+                    let latitude = report.object(forKey: "latitude") as! String?
+                    let longitude = report.object(forKey: "longitud") as! String?
+                    let description = report.object(forKey: "description") as! String?
+                    let score = report.object(forKey: "score") as! String?
+                    
+                    self.Reportes.append(Reporte(location: location, latitude: latitude, longitude: longitude, description: description, score: score))
+                }
+                self.performSegue(withIdentifier: "segue_list", sender: self)
+            }
+        }
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "segue_register"{
             _ = segue.destination as! ViewControllerRegister
         }
         if segue.identifier == "segue_map"{
             _ = segue.destination as! ViewControllerMap
+        }
+        if segue.identifier == "segue_report"{
+            let x = segue.destination as! ViewControllerReport
+            x.mail = mail
+            
+        }
+        if segue.identifier == "segue_list"{
+            let seguex = segue.destination as! TableViewControllerList
+            seguex.reportes = Reportes
         }
     }
 
