@@ -10,6 +10,8 @@ import UIKit
 
 class TableViewCellList: UITableViewCell {
 
+    @IBOutlet weak var lbscore: UILabel!
+    @IBOutlet weak var lblocation: UILabel!
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
